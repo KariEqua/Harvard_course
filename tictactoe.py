@@ -5,7 +5,6 @@ import copy
 from collections import Counter
 import random
 
-
 X = "X"
 O = "O"
 EMPTY = None
@@ -59,7 +58,10 @@ def result(board, action):
     """
     i = action[0]
     j = action[1]
-    if board[i][j] != EMPTY:
+    try:
+        if board[i][j] != EMPTY:
+            raise Exception
+    except IndexError:
         raise Exception
 
     memo = {}
@@ -141,7 +143,8 @@ def minimax(board):
     Returns the optimal action for the current player on the board.
     Uses helper function minimax_recurrent.
     """
-
+    if terminal(board):
+        return None
     action_dict = {}
     for action in actions(board):
         action_dict[action] = minimax_recurrent(board, action, player(board))
@@ -170,7 +173,8 @@ def minimax_recurrent(board, action, sign):
     opponent_actions = actions(new_board)
     opponent_actions_score = {}
     for opponent_action in opponent_actions:
-        opponent_actions_score[opponent_action] = action_score + minimax_recurrent(new_board, opponent_action, sign)
+        opponent_actions_score[opponent_action] = (action_score +
+                                                   minimax_recurrent(new_board, opponent_action, sign))
     if player(new_board) == sign:
         return max(opponent_actions_score.values())
     else:
