@@ -59,7 +59,7 @@ def result(board, action):
     i = action[0]
     j = action[1]
     try:
-        if board[i][j] != EMPTY:
+        if board[i][j] != EMPTY or i < 0 or j < 0:
             raise Exception
     except IndexError:
         raise Exception
