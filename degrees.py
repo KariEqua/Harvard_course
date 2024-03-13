@@ -91,6 +91,8 @@ def shortest_path(source, target):
 
     If no possible path, returns None.
     """
+    if source == target:
+        return []
     queue = QueueFrontier()
     visited_people = {source: 1}
     id_to_check = source
@@ -116,8 +118,10 @@ def shortest_path(source, target):
 def parent_path(node):
     path_list = []
     while node:
+        print(node.state)
         path_list.append(node.state)
         node = node.parent
+    path_list.reverse()
     return path_list
 
 
