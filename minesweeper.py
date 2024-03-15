@@ -204,6 +204,10 @@ class MinesweeperAI():
         # based on the value of `cell` and `count`
         self.add_neighbors(cell, count)
 
+        # updates changes in mines, safe cells and knowledge
+        self.update_any_changes()
+
+    def update_any_changes(self):
         # Checks for new mines and safe cells
         self.update_mines_safe_cells()
 
@@ -222,6 +226,7 @@ class MinesweeperAI():
         for cell in cells:
             if cell not in self.mines:
                 self.mark_mine(cell)
+                self.update_any_changes()
 
     def add_safe_cells(self, cells):
         """
@@ -233,10 +238,12 @@ class MinesweeperAI():
             for cell in cells:
                 if cell not in self.safes:
                     self.mark_safe(cell)
+                    self.update_any_changes()
         else:
             # treat cells as one element
             if cells not in self.safes:
                 self.mark_safe(cells)
+                self.update_any_changes()
 
     def check_subsets(self):
         """
@@ -300,6 +307,7 @@ class MinesweeperAI():
         if count == 0:
             for correct_neighbor in correct_neighbors:
                 self.safes.add(correct_neighbor)
+                # self.update_any_changes()
 
         # if there are correct cells, it adds sentence to knowledge
         if len(correct_neighbors) != 0:
@@ -330,10 +338,12 @@ class MinesweeperAI():
             if len(mines) != 0:  # Checks if mines is None before iterating
                 for mine in mines:
                     self.mines.add(mine)
+                    # self.update_any_changes()
             safe_cells = sentence.known_safes()
             if len(safe_cells) != 0:  # Checks if safe_cells is None before iterating
                 for safe_cell in safe_cells:
                     self.safes.add(safe_cell)
+                    # self.update_any_changes()
 
     def make_safe_move(self):
         """
