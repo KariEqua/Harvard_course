@@ -333,17 +333,22 @@ class MinesweeperAI():
         """
             Updates new mines and new safe cells.
         """
+        is_changed = False
         for sentence in self.knowledge:
             mines = sentence.known_mines()
             if len(mines) != 0:  # Checks if mines is None before iterating
                 for mine in mines:
-                    self.mines.add(mine)
-                    # self.update_any_changes()
+                    if mine not in self.mines:
+                        self.mines.add(mine)
+                        is_changed = True
             safe_cells = sentence.known_safes()
             if len(safe_cells) != 0:  # Checks if safe_cells is None before iterating
                 for safe_cell in safe_cells:
-                    self.safes.add(safe_cell)
-                    # self.update_any_changes()
+                    if safe_cell not in self.safes:
+                        self.safes.add(safe_cell)
+                        is_changed = True
+            if is_changed:
+                self.update_any_changes()
 
     def make_safe_move(self):
         """
