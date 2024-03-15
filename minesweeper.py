@@ -242,7 +242,7 @@ class MinesweeperAI():
         """
             Looks for inferred sentences from existing knowledge, by
             checking if in knowledge exists set that is subset of another set.
-            If it does, it calls subset method.
+            If it does, it calls subset method and calls recurrently check_subsets.
         """
         for sentence_a in self.knowledge:
             set_a, count_a = sentence_a.get_cells_and_count()
@@ -250,8 +250,14 @@ class MinesweeperAI():
                 set_b, count_b = sentence_b.get_cells_and_count()
                 if set_a < set_b:
                     self.subsets(set_b, count_b, set_a, count_a)
+                    if sentence_b in self.knowledge:
+                        self.knowledge.remove(sentence_b)
+                    self.check_subsets()
                 elif set_b < set_a:
                     self.subsets(set_a, count_a, set_b, count_b)
+                    if sentence_a in self.knowledge:
+                        self.knowledge.remove(sentence_a)
+                    self.check_subsets()
 
     def subsets(self, set_a, count_a, subset_a, count_subset_a):
         """
@@ -259,6 +265,7 @@ class MinesweeperAI():
             If new set has one element and count is equal to 1,
             it found new mine.
             If set has count equal to 0, it found safe cells.
+            In other cases adds sentence to knowledge if it does not exist.
         """
         new_cells = set_a - subset_a
         new_count = count_a - count_subset_a
@@ -266,6 +273,10 @@ class MinesweeperAI():
             self.mine_found(new_cells)
         elif new_count == 0:
             self.add_safe_cells(new_cells)
+        else:
+            sentence = Sentence(new_cells, new_count)
+            if sentence not in self.knowledge:
+                self.knowledge.append(sentence)
 
     def add_neighbors(self, cell, count):
         """
