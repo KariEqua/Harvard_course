@@ -101,6 +101,12 @@ class Sentence():
     def __str__(self):
         return f"{self.cells} = {self.count}"
 
+    def is_empty(self):
+        """
+        Check if the set of cells is empty.
+        """
+        return len(self.cells) == 0
+
     def get_cells_and_count(self):
         return self.cells, self.count
 
@@ -196,9 +202,11 @@ class MinesweeperAI():
         """
         # mark the cell as a move that has been made
         self.moves_made.add(cell)
+        print('new move: ', cell, count)
 
         # mark the cell as safe
-        self.add_safe_cells(cell)
+        if cell not in self.safes:
+            self.mark_safe(cell)
 
         # add a new sentence to the AI's knowledge base
         # based on the value of `cell` and `count`
@@ -206,84 +214,6 @@ class MinesweeperAI():
 
         # updates changes in mines, safe cells and knowledge
         self.update_any_changes()
-
-    def update_any_changes(self):
-        # Checks for new mines and safe cells
-        self.update_mines_safe_cells()
-
-        # Updates knowledge for new mines and safe cells
-        self.update_knowledge()
-
-        # Looks for inferred sentences from existing knowledge
-        self.check_subsets()
-        print('mines: ', self.mines)
-
-    def mine_found(self, cells):
-        """
-            Adds given cells to self.mines,
-            if they were not already added.
-        """
-        for cell in cells:
-            if cell not in self.mines:
-                self.mark_mine(cell)
-                self.update_any_changes()
-
-    def add_safe_cells(self, cells):
-        """
-            Adds given cells to self.safes,
-            if they were not already added.
-            Takes as input set() or one element.
-        """
-        if isinstance(cells, set):
-            for cell in cells:
-                if cell not in self.safes:
-                    self.mark_safe(cell)
-                    self.update_any_changes()
-        else:
-            # treat cells as one element
-            if cells not in self.safes:
-                self.mark_safe(cells)
-                self.update_any_changes()
-
-    def check_subsets(self):
-        """
-            Looks for inferred sentences from existing knowledge, by
-            checking if in knowledge exists set that is subset of another set.
-            If it does, it calls subset method and calls recurrently check_subsets.
-        """
-        for sentence_a in self.knowledge:
-            set_a, count_a = sentence_a.get_cells_and_count()
-            for sentence_b in self.knowledge:
-                set_b, count_b = sentence_b.get_cells_and_count()
-                if set_a < set_b:
-                    self.subsets(set_b, count_b, set_a, count_a)
-                    if sentence_b in self.knowledge:
-                        self.knowledge.remove(sentence_b)
-                    self.check_subsets()
-                elif set_b < set_a:
-                    self.subsets(set_a, count_a, set_b, count_b)
-                    if sentence_a in self.knowledge:
-                        self.knowledge.remove(sentence_a)
-                    self.check_subsets()
-
-    def subsets(self, set_a, count_a, subset_a, count_subset_a):
-        """
-            Checks new set and count, created by subsets.
-            If new set has one element and count is equal to 1,
-            it found new mine.
-            If set has count equal to 0, it found safe cells.
-            In other cases adds sentence to knowledge if it does not exist.
-        """
-        new_cells = set_a - subset_a
-        new_count = count_a - count_subset_a
-        if len(new_cells) == 1 and new_count == 1:
-            self.mine_found(new_cells)
-        elif new_count == 0:
-            self.add_safe_cells(new_cells)
-        else:
-            sentence = Sentence(new_cells, new_count)
-            if sentence not in self.knowledge:
-                self.knowledge.append(sentence)
 
     def add_neighbors(self, cell, count):
         """
@@ -293,30 +223,48 @@ class MinesweeperAI():
         i, j = cell
 
         # writes all surrounding cells
-        neighbors = {(i, j-1), (i, j+1), (i-1, j-1), (i-1, j), (i-1, j+1),
-                     (i+1, j-1), (i+1, j), (i+1, j+1)}
+        neighbors = {(i, j - 1), (i, j + 1), (i - 1, j - 1), (i - 1, j), (i - 1, j + 1),
+                     (i + 1, j - 1), (i + 1, j), (i + 1, j + 1)}
 
         # corrects that cells are not out of range
         correct_neighbors = set()
         for neighbor in neighbors:
             p, q = neighbor
             if 0 <= p < self.height and 0 <= q < self.width:
-                correct_neighbors.add(neighbor)
-
-        # if count is 0, then it adds cells to safe cells
-        if count == 0:
-            for correct_neighbor in correct_neighbors:
-                self.safes.add(correct_neighbor)
-                # self.update_any_changes()
+                if (p, q) not in self.safes:
+                    correct_neighbors.add(neighbor)
 
         # if there are correct cells, it adds sentence to knowledge
-        if len(correct_neighbors) != 0:
-            sentence = Sentence(correct_neighbors, count)
-            self.knowledge.append(sentence)
+        sentence = Sentence(correct_neighbors, count)
+        self.knowledge.append(sentence)
+
+    def update_any_changes(self):
+        """
+            Checks and updates changes in mines, safe cells and knowledge,
+            until no change is required.
+        """
+        is_changed = True
+        while is_changed:
+            update_cells_is_changed = False
+            update_subsets_is_changed = False
+            # Updates knowledge for new mines and safe cells
+            self.update_knowledge()
+
+            # Checks for new mines and safe cells
+            update_cells_is_changed = self.update_mines_safe_cells()
+
+            # Looks for inferred sentences from existing knowledge
+            update_subsets_is_changed = self.check_subsets()
+
+            is_changed = update_cells_is_changed or update_subsets_is_changed
+            print('Current knowledge: ')
+            for sentence in self.knowledge:
+                print(sentence)
+            print('mines: ', self.mines)
+            print('safe cells: ', self.safes)
 
     def update_knowledge(self):
         """
-            Removes empty sentence.
             For safe cells, marks according cells in knowledge.
             Same for mines.
         """
@@ -326,8 +274,6 @@ class MinesweeperAI():
                 sentence.mark_safe(cell)
             for mine in self.mines:
                 sentence.mark_mine(mine)
-            if sentence == empty_sentence:
-                self.knowledge.remove(sentence)
 
     def update_mines_safe_cells(self):
         """
@@ -347,8 +293,50 @@ class MinesweeperAI():
                     if safe_cell not in self.safes:
                         self.safes.add(safe_cell)
                         is_changed = True
-            if is_changed:
-                self.update_any_changes()
+        return is_changed
+
+    def check_subsets(self):
+        """
+            Removes empty sentence.
+            Looks for inferred sentences from existing knowledge, by
+            checking if in knowledge exists set that is subset of another set.
+            If it does, it calls subset method.
+            Returns True if change is made.
+        """
+        is_changed = False
+        for sentence in self.knowledge:
+            if sentence.is_empty():
+                self.knowledge.remove(sentence)
+
+        for sentence_a in self.knowledge:
+            set_a, count_a = sentence_a.get_cells_and_count()
+
+            for sentence_b in self.knowledge:
+                if sentence_a == sentence_b:
+                    continue
+                set_b, count_b = sentence_b.get_cells_and_count()
+
+                if set_a.issubset(set_b):
+                    is_changed = self.subsets(set_b, count_b, set_a, count_a)
+
+        return is_changed
+
+    def subsets(self, set_a, count_a, subset_a, count_subset_a):
+        """
+            Checks new set and count, created by subsets.
+            Adds sentence to knowledge if it does not exist.
+            Returns True if change is made.
+        """
+        new_cells = set_a - subset_a
+        new_count = count_a - count_subset_a
+        print('we have subsets: ', set_a, count_a, subset_a, count_subset_a)
+        print('new sentence: ', new_cells, new_count)
+
+        sentence = Sentence(new_cells, new_count)
+        if sentence not in self.knowledge:
+            self.knowledge.append(sentence)
+            return True
+        return False
 
     def make_safe_move(self):
         """
