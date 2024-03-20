@@ -15,11 +15,11 @@ def main():
     ranks = sample_pagerank(corpus, DAMPING, SAMPLES)
     print(f"PageRank Results from Sampling (n = {SAMPLES})")
     for page in sorted(ranks):
-        print(f"  {page}: {ranks[page]:.4f}")
+        print(f"  {page}: {ranks[page]: .4f}")
     ranks = iterate_pagerank(corpus, DAMPING)
     print(f"PageRank Results from Iteration")
     for page in sorted(ranks):
-        print(f"  {page}: {ranks[page]:.4f}")
+        print(f"  {page}: {ranks[page]: .4f}")
 
 
 def crawl(directory):
@@ -116,9 +116,9 @@ def iterate_pagerank(corpus, damping_factor):
                 if key not in corpus_value:
                     continue
                 num_links = len(corpus_value)
-                if num_links == 0:
-                    pagerank_sum += pagerank_dict[corpus_key] / n
-                else:
+                if num_links != 0:
+                    # pagerank_sum += pagerank_dict[corpus_key] / n
+                # else:
                     pagerank_sum += pagerank_dict[corpus_key] / num_links
             new_pagerank = (1 - damping_factor) / n + damping_factor * pagerank_sum
             pagerank_change = abs(pagerank_dict[key] - new_pagerank)
