@@ -117,11 +117,9 @@ def iterate_pagerank(corpus, damping_factor):
                     continue
                 num_links = len(corpus_value)
                 if num_links != 0:
-                    # pagerank_sum += pagerank_dict[corpus_key] / n
-                # else:
                     pagerank_sum += pagerank_dict[corpus_key] / num_links
             new_pagerank = (1 - damping_factor) / n + damping_factor * pagerank_sum
-            pagerank_change = abs(pagerank_dict[key] - new_pagerank)
+            pagerank_change = abs(value - new_pagerank)
             pagerank_dict[key] = new_pagerank
             max_change = max(max_change, pagerank_change)
         if max_change <= 0.001:
