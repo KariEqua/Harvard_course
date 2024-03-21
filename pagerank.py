@@ -108,16 +108,19 @@ def iterate_pagerank(corpus, damping_factor):
     n = len(corpus)
     value = 1 / n
     pagerank_dict = {key: value for key in corpus}
+    page_list = list(pagerank_dict.keys())
     while True:
         max_change = 0
         for key, value in pagerank_dict.items():
             pagerank_sum = 0
             for corpus_key, corpus_value in corpus.items():
+                num_links = len(corpus_value)
+                if num_links == 0:
+                    corpus_value = page_list
+                    num_links = n
                 if key not in corpus_value:
                     continue
-                num_links = len(corpus_value)
-                if num_links != 0:
-                    pagerank_sum += pagerank_dict[corpus_key] / num_links
+                pagerank_sum += pagerank_dict[corpus_key] / num_links
             new_pagerank = (1 - damping_factor) / n + damping_factor * pagerank_sum
             pagerank_change = abs(value - new_pagerank)
             pagerank_dict[key] = new_pagerank
