@@ -163,16 +163,28 @@ def joint_probability(people, one_gene, two_genes, have_trait):
 
 
 def no_genes_from_parent(x):
+    """
+        Returns probability in which parent gives no genes to child,
+        where parent has x genes.
+    """
     mut = PROBS['mutation']
     return x / 2 * mut + (2 - x) / 2 * (1 - mut)
 
 
 def one_gene_from_parent(x):
+    """
+       Returns probability in which parent gives one gene to child,
+       where parent has x genes.
+   """
     mut = PROBS['mutation']
     return x / 2 * (1 - mut) + (2 - x) / 2 * mut
 
 
 def gene_trait(person, one_gene, two_genes, have_trait):
+    """
+    Returns gene_number (0, 1, 2) and is_trait (True, False),
+    by checking presence of given person in sets.
+    """
     if person in one_gene:
         gene_number = 1
     elif person in two_genes:
@@ -212,27 +224,27 @@ def normalize(probabilities):
 
 
 def normalize_genes(probabilities, person):
+    """
+    Updates the probabilities dictionary.
+    Normalizing 'gene' values.
+    """
     x = probabilities[person]['gene'][0]
     y = probabilities[person]['gene'][1]
     z = probabilities[person]['gene'][2]
-    if x is None:
-        x = 0
-    if y is None:
-        y = 0
-    if z is None:
-        z = 0
+
     probabilities[person]['gene'][0] *= 1 / (x + y + z)
     probabilities[person]['gene'][1] *= 1 / (x + y + z)
     probabilities[person]['gene'][2] *= 1 / (x + y + z)
 
 
 def normalize_trait(probabilities, person):
+    """
+    Updates the probabilities dictionary.
+    Normalizing 'trait' values.
+    """
     x = probabilities[person]['trait'][True]
     y = probabilities[person]['trait'][False]
-    if x is None:
-        x = 0
-    if y is None:
-        y = 0
+
     probabilities[person]['trait'][True] *= 1 / (x + y)
     probabilities[person]['trait'][False] *= 1 / (x + y)
 
