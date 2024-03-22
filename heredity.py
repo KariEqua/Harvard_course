@@ -39,10 +39,9 @@ PROBS = {
 
 def main():
     # Check for proper usage
-    # if len(sys.argv) != 2:
-    #     sys.exit("Usage: python heredity.py data.csv")
-    people = load_data('data/family0.csv')   # sys.argv[1]
-
+    if len(sys.argv) != 2:
+        sys.exit("Usage: python heredity.py data.csv")
+    people = load_data(sys.argv[1])
     # Keep track of gene and trait probabilities for each person
     probabilities = {
         person: {
@@ -208,10 +207,34 @@ def normalize(probabilities):
     is normalized (i.e., sums to 1, with relative proportions the same).
     """
     for person in probabilities.keys():
-        x = probabilities[person]['trait'][True]
-        y = probabilities[person]['trait'][False]
-        probabilities[person]['trait'][True] *= 1 / (x + y)
-        probabilities[person]['trait'][False] *= 1 / (x + y)
+        normalize_genes(probabilities, person)
+        normalize_trait(probabilities, person)
+
+
+def normalize_genes(probabilities, person):
+    x = probabilities[person]['gene'][0]
+    y = probabilities[person]['gene'][1]
+    z = probabilities[person]['gene'][2]
+    if x is None:
+        x = 0
+    if y is None:
+        y = 0
+    if z is None:
+        z = 0
+    probabilities[person]['gene'][0] *= 1 / (x + y + z)
+    probabilities[person]['gene'][1] *= 1 / (x + y + z)
+    probabilities[person]['gene'][2] *= 1 / (x + y + z)
+
+
+def normalize_trait(probabilities, person):
+    x = probabilities[person]['trait'][True]
+    y = probabilities[person]['trait'][False]
+    if x is None:
+        x = 0
+    if y is None:
+        y = 0
+    probabilities[person]['trait'][True] *= 1 / (x + y)
+    probabilities[person]['trait'][False] *= 1 / (x + y)
 
 
 if __name__ == "__main__":
