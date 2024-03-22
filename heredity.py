@@ -39,9 +39,9 @@ PROBS = {
 
 def main():
     # Check for proper usage
-    if len(sys.argv) != 2:
-        sys.exit("Usage: python heredity.py data.csv")
-    people = load_data(sys.argv[1])
+    # if len(sys.argv) != 2:
+    #     sys.exit("Usage: python heredity.py data.csv")
+    people = load_data('data/family0.csv')   # sys.argv[1]
 
     # Keep track of gene and trait probabilities for each person
     probabilities = {
@@ -143,7 +143,7 @@ def joint_probability(people, one_gene, two_genes, have_trait):
         parents = people[person]
         gene_number, is_trait = gene_trait(person, one_gene, two_genes, have_trait)
 
-        if len(parents) == 0:
+        if parents['father'] is None or parents['mother'] is None:
             gene_param = PROBS['gene'][gene_number]
             trait_param = PROBS['trait'][gene_number][is_trait]
         else:
@@ -198,8 +198,8 @@ def update(probabilities, one_gene, two_genes, have_trait, p):
     """
     for person in probabilities.keys():
         gene_number, is_trait = gene_trait(person, one_gene, two_genes, have_trait)
-        probabilities[person]['gene'][gene_number] = p
-        probabilities[person]['trait'][is_trait] = p
+        probabilities[person]['gene'][gene_number] += p
+        probabilities[person]['trait'][is_trait] += p
 
 
 def normalize(probabilities):
