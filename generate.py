@@ -151,14 +151,17 @@ class CrosswordCreator():
             initial_queue = self.all_arcs()
         else:
             initial_queue = arcs
-
+        change_made = False
         while len(initial_queue) != 0:
             arc_x, arc_y = initial_queue.pop(0)
             if self.revise(arc_x, arc_y):
-                var_set_y = variables.copy()
-                var_set_y.remove(arc_x)
-                for y in list(var_set_y):
-                    initial_queue.append((arc_x, y))
+                change_made = True
+                # var_set_y = variables.copy()
+                # var_set_y.remove(arc_x)
+                # for y in list(var_set_y):
+                #     initial_queue.append((arc_x, y))
+        if change_made:
+            self.ac3()
 
         var_list = list(self.crossword.variables)
         for variable in var_list:
@@ -242,6 +245,8 @@ class CrosswordCreator():
         word_dict = {}
 
         for value in values_list:
+            if value in assigned_words:
+                continue
             word_dict[value] = 0
             for key in self.crossword.neighbors(var):
                 if self.crossword.overlaps[var, key] is None:
@@ -249,8 +254,7 @@ class CrosswordCreator():
                 i, j = self.crossword.overlaps[var, key]
                 var_letter = value[i]
                 for word in list(self.domains[key]):
-                    if word in assigned_words:
-                        continue
+
                     if word[j] != var_letter:
                         word_dict[value] += 1
 
@@ -314,6 +318,8 @@ class CrosswordCreator():
                 self.ac3_assigned(assignment)
                 continue
             words = self.order_domain_values(var, assignment)
+            if len(words) == 0:
+                return None
             assignment[var] = words[0]
             word_set = {words[0]}
             self.domains[var] = word_set
@@ -327,13 +333,6 @@ class CrosswordCreator():
                 if key == var:
                     continue
                 x = self.revise(var, key)
-
-    def remove_assigned_words(self, assignment):
-        for key in self.domains.keys():
-            words = list(self.domains[key])
-            for word in words:
-                if word in list(assignment.values()):
-                    self.domains[key].remove(word)
 
 
 def main():
