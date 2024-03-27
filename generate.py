@@ -239,16 +239,20 @@ class CrosswordCreator():
         if len(values_list) == 1:
             return values_list
         assigned_words = list(assignment.values())
-        word_dict = {word: 1 for word in values_list if word not in assigned_words}
+        word_dict = {}
 
-        for key in self.crossword.neighbors(var):
-            for word in list(self.domains[key]):
-                if word in assigned_words:
+        for value in values_list:
+            word_dict[value] = 0
+            for key in self.crossword.neighbors(var):
+                if self.crossword.overlaps[var, key] is None:
                     continue
-                if word in word_dict:
-                    word_dict[word] += 1
-                else:
-                    word_dict[word] = 1
+                i, j = self.crossword.overlaps[var, key]
+                var_letter = value[i]
+                for word in list(self.domains[key]):
+                    if word in assigned_words:
+                        continue
+                    if word[j] != var_letter:
+                        word_dict[value] += 1
 
         sorted_word_dict = dict(sorted(word_dict.items(), key=lambda x: x[1]))
 
@@ -305,21 +309,41 @@ class CrosswordCreator():
             words_list = list(words)
             if len(words_list) == 1:
                 assignment[var] = words_list[0]
+                word_set = {words_list[0]}
+                self.domains[var] = word_set
+                self.ac3_assigned(assignment)
                 continue
             words = self.order_domain_values(var, assignment)
             assignment[var] = words[0]
-
+            word_set = {words[0]}
+            self.domains[var] = word_set
+            self.ac3_assigned(assignment)
         return None
+
+    def ac3_assigned(self, assignment):
+        variables = self.crossword.variables
+        for key, value in assignment.items():
+            for var in variables:
+                if key == var:
+                    continue
+                x = self.revise(var, key)
+
+    def remove_assigned_words(self, assignment):
+        for key in self.domains.keys():
+            words = list(self.domains[key])
+            for word in words:
+                if word in list(assignment.values()):
+                    self.domains[key].remove(word)
 
 
 def main():
     # Check usage
-    # if len(sys.argv) not in [3, 4]:
-    #     sys.exit("Usage: python generate.py structure words [output]")
+    if len(sys.argv) not in [3, 4]:
+        sys.exit("Usage: python generate.py structure words [output]")
 
     # Parse command-line arguments
-    structure = 'data/structure2.txt'  # sys.argv[1]
-    words = 'data/words2.txt'  # sys.argv[2]
+    structure = sys.argv[1]
+    words = sys.argv[2]
     output = sys.argv[3] if len(sys.argv) == 4 else None
 
     # Generate crossword
