@@ -156,10 +156,6 @@ class CrosswordCreator():
             arc_x, arc_y = initial_queue.pop(0)
             if self.revise(arc_x, arc_y):
                 change_made = True
-                # var_set_y = variables.copy()
-                # var_set_y.remove(arc_x)
-                # for y in list(var_set_y):
-                #     initial_queue.append((arc_x, y))
         if change_made:
             self.ac3()
 
@@ -172,6 +168,9 @@ class CrosswordCreator():
         return True
 
     def all_arcs(self):
+        """
+        Returns all possible pairs from variables.
+        """
         arc_list = []
         var_set_x = list(self.domains.keys())
 
@@ -274,7 +273,6 @@ class CrosswordCreator():
         variables = list(self.crossword.variables)
 
         min_values = float('inf')
-        # chosen_value = None
         for var in variables:
             if var in assignment:
                 continue
@@ -327,6 +325,10 @@ class CrosswordCreator():
         return None
 
     def ac3_assigned(self, assignment):
+        """
+        Updates `self.domains` such that each variable is arc consistent
+        with variables from assignment.
+        """
         variables = self.crossword.variables
         for key, value in assignment.items():
             for var in variables:
