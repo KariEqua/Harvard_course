@@ -141,9 +141,9 @@ class NimAI():
         max_q = 0
         for action in actions:
             q_value = self.get_q_value(state, action)
-            if q_value >= max_q:
+            if q_value > max_q:
                 max_q = q_value
-        return 0
+        return max_q
 
     def choose_action(self, state, epsilon=True):
         """
