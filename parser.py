@@ -89,8 +89,18 @@ def np_chunk(tree):
     """
     chunks = []
     for s in tree.subtrees(lambda t: t.label() == 'NP'):
+        contains_np = False
+        for sub in s:
+            if sub.label() == 'NP':
+                contains_np = True
+                break
+            for subb in sub.subtrees():
+                if subb.label() == 'NP':
+                    contains_np = True
+                    break
 
-        chunks.append(s)
+        if not contains_np:
+            chunks.append(s)
 
     return chunks
 
